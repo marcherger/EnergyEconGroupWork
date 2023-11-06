@@ -1,6 +1,5 @@
 # EnergyEconGroupWork
 Git Repository for the project of Carolus, Marc and Paul.
-test
 
 ## Neccesary steps to push changes to the git repository
 
