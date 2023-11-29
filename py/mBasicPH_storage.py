@@ -20,7 +20,7 @@ def plantEmissionIntensity(db):
 def emissionsFuel(db):
 	return pyDbs.pdSum(fuelConsumption(db) * db['EmissionIntensity'], 'BFt')
 
-def theoreticalCapacityFactor(db):
+def theoreticalCapacityFactor(db): # Utilisation of generation capacity summed up over the whole year
 	return pyDbs.pdSum((subsetIdsTech(db['Generation_E'], ('Standard (E)','Backpressure'), db) / pdNonZero(len(db['h']) * db['GeneratingCap_E'])).dropna(), 'h').droplevel('g_E')
 
 def marginalSystemCosts(db,market):
