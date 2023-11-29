@@ -7,7 +7,7 @@ def fuelCost(db):
 	return db['FuelPrice'].add(pyDbs.pdSum(db['EmissionIntensity'] * db['EmissionTax'], 'EmissionType'), fill_value=0)
 
 def mc(db):
-	""" Marginal costs in €/GJ """
+	""" Marginal costs in €/MWh """
 	return pyDbs.pdSum((db['FuelMix'] * fuelCost(db)).dropna(), 'BFt').add(db['OtherMC'], fill_value=0)
 
 def fuelConsumption(db):
