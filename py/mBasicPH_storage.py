@@ -1,3 +1,9 @@
+import os
+curr = os.getcwd()
+_repo = 'EnergyEconGroupWork'
+_repodir = os.path.join(os.getcwd().split(_repo,1)[0],_repo)
+_pydir = os.path.join(_repodir,'py')
+os.chdir(_pydir)
 from base import *
 from lpCompiler import _blocks
 from lpModels import modelShell
