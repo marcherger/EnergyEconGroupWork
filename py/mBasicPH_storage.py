@@ -129,10 +129,10 @@ class mSimple(modelShell):
 		return [{'varName': 'Generation_E', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['Generation_E']), 'conditions': getTechs(['standard_E','BP'],self.db)},
 				{'varName': 'Generation_H', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['Generation_H']), 'conditions': getTechs(['standard_H','HP'],self.db)},
 				{'varName': 'HourlyDemand_E','value':-adjMultiIndex.bc(self.db['MWP_E'], self.globalDomains['HourlyDemand_E'])},
-				{'varName': 'HourlyDemand_H','value':-adjMultiIndex.bc(self.db['MWP_H'], self.globalDomains['HourlyDemand_H'])},
+				{'varName': 'HourlyDemand_H','value':-adjMultiIndex.bc(self.db['MWP_H'], self.globalDomains['HourlyDemand_H'])}]
 				#{'varName': 'Transmission_E','value': adjMultiIndex.bc(self.db['lineMC'], self.db['h'])},
-				{'varName': 'discharge_H', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['discharge_H']), 'conditions': getTechs('HS',self.db)},
-				{'varName': 'charge_H',	'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['charge_H']),   'conditions': getTechs('HS',self.db)}]
+				#{'varName': 'discharge_H', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['discharge_H']), 'conditions': getTechs('HS',self.db)},
+				#{'varName': 'charge_H',	'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['charge_H']),   'conditions': getTechs('HS',self.db)}]
 
 	@property
 	def u(self):
