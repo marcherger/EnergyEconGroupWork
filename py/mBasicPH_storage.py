@@ -65,7 +65,7 @@ class mSimple(modelShell):
 		(5) CHP plants and HP """
 	def __init__(self, db, blocks = None, **kwargs):
 		db.updateAlias(alias=[(k, k+'_constr') for k in ('h','g_E', 'g_H','g','id')]+[(k, k+'_alias') for k in ['g_E']])
-		db['gConnected'] = db['lineCapacity'].index
+		#db['gConnected'] = db['lineCapacity'].index
 		db['id2modelTech2tech'] = sortAll(adjMultiIndex.bc(pd.Series(0, index = db['id2tech']), db['tech2modelTech'])).index
 		super().__init__(db, blocks=blocks, **kwargs)
 
@@ -115,7 +115,7 @@ class mSimple(modelShell):
 				'stored_H'	: adj.rc_pd(pyDbs.cartesianProductIndex([subsetIdsTech(self.db['id2g_H'], 'HS', self.db), self.db['h']]), self.db['sCap']),				
 				'HourlyDemand_E': pyDbs.cartesianProductIndex([self.db['c_E2g_E'], self.db['h']]),
 				'HourlyDemand_H': pyDbs.cartesianProductIndex([self.db['c_H2g_H'], self.db['h']]),
-				'Transmission_E': pyDbs.cartesianProductIndex([self.db['gConnected'],self.db['h']]),
+				#'Transmission_E': pyDbs.cartesianProductIndex([self.db['gConnected'],self.db['h']]),
 				'equilibrium_E': pd.MultiIndex.from_product([self.db['g_E_constr'], self.db['h_constr']]),
 				'equilibrium_H': pd.MultiIndex.from_product([self.db['g_H_constr'], self.db['h_constr']]),
 				'PowerToHeat':	 pyDbs.cartesianProductIndex([adj.rc_AdjPd(getTechs(['BP','HP'],self.db), alias = {'id':'id_constr'}), self.db['h_constr']]),
@@ -130,7 +130,7 @@ class mSimple(modelShell):
 				{'varName': 'Generation_H', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['Generation_H']), 'conditions': getTechs(['standard_H','HP'],self.db)},
 				{'varName': 'HourlyDemand_E','value':-adjMultiIndex.bc(self.db['MWP_E'], self.globalDomains['HourlyDemand_E'])},
 				{'varName': 'HourlyDemand_H','value':-adjMultiIndex.bc(self.db['MWP_H'], self.globalDomains['HourlyDemand_H'])},
-				{'varName': 'Transmission_E','value': adjMultiIndex.bc(self.db['lineMC'], self.db['h'])},
+				#{'varName': 'Transmission_E','value': adjMultiIndex.bc(self.db['lineMC'], self.db['h'])},
 				{'varName': 'discharge_H', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['discharge_H']), 'conditions': getTechs('HS',self.db)},
 				{'varName': 'charge_H',	'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['charge_H']),   'conditions': getTechs('HS',self.db)}]
 
@@ -140,7 +140,7 @@ class mSimple(modelShell):
 				{'varName': 'Generation_H', 'value': adjMultiIndex.bc(self.hourlyGeneratingCap_H, self.globalDomains['Generation_H']), 'conditions': getTechs(['standard_H','HP'],self.db)},
 				{'varName': 'HourlyDemand_E', 'value': self.hourlyLoad_cE},
 				{'varName': 'HourlyDemand_H', 'value': self.hourlyLoad_cH},
-				{'varName': 'Transmission_E', 'value': adjMultiIndex.bc(self.db['lineCapacity'], self.db['h'])},
+				#{'varName': 'Transmission_E', 'value': adjMultiIndex.bc(self.db['lineCapacity'], self.db['h'])},
 				{'varName': 'stored_H', 'value': adjMultiIndex.bc(self.db['sCap'], self.globalDomains['stored_H'])},
 				{'varName': 'discharge_H', 'value': adjMultiIndex.bc(self.db['GeneratingCap_H'], self.globalDomains['discharge_H']), 'conditions': getTechs('HS',self.db)},
 				{'varName': 'charge_H', 'value': adjMultiIndex.bc(self.db['chargeCap_H'], self.globalDomains['charge_H']), 'conditions': getTechs('HS',self.db)}]
@@ -162,8 +162,8 @@ class mSimple(modelShell):
 	def A_ub(self):
 		return [{'constrName': 'equilibrium_E', 'varName': 'Generation_E', 'value': appIndexWithCopySeries(pd.Series(-1, index = self.globalDomains['Generation_E']), ['g_E','h'],['g_E_constr','h_constr'])},
 				{'constrName': 'equilibrium_E', 'varName': 'HourlyDemand_E', 'value': appIndexWithCopySeries(pd.Series(1, index = self.globalDomains['HourlyDemand_E']), ['g_E','h'],['g_E_constr','h_constr'])},
-				{'constrName': 'equilibrium_E', 'varName': 'Transmission_E', 'value': [appIndexWithCopySeries(pd.Series(1, index = self.globalDomains['Transmission_E']), ['g_E','h'],['g_E_constr','h_constr']),
-																					   appIndexWithCopySeries(pd.Series(self.db['lineLoss']-1, index = self.globalDomains['Transmission_E']), ['g_E_alias','h'], ['g_E_constr','h_constr'])]},
+				#{'constrName': 'equilibrium_E', 'varName': 'Transmission_E', 'value': [appIndexWithCopySeries(pd.Series(1, index = self.globalDomains['Transmission_E']), ['g_E','h'],['g_E_constr','h_constr']),
+				#																	   appIndexWithCopySeries(pd.Series(self.db['lineLoss']-1, index = self.globalDomains['Transmission_E']), ['g_E_alias','h'], ['g_E_constr','h_constr'])]},
 				{'constrName': 'equilibrium_H', 'varName': 'Generation_H', 'value': appIndexWithCopySeries(pd.Series(-1, index = self.globalDomains['Generation_H']), ['g_H','h'],['g_H_constr','h_constr'])},
 				{'constrName': 'equilibrium_H', 'varName': 'HourlyDemand_H','value':appIndexWithCopySeries(pd.Series(1, index = self.globalDomains['HourlyDemand_H']), ['g_H','h'],['g_H_constr','h_constr'])},
 				{'constrName': 'equilibrium_H', 'varName': 'discharge_H', 'value': appIndexWithCopySeries(pd.Series(-1, index = self.globalDomains['discharge_H']), ['g_H','h'], ['g_H_constr','h_constr'])},
