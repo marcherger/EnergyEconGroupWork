@@ -92,10 +92,10 @@ class mSimple(modelShell):
 								('standard_H','HP'), self.db)
 	@property
 	def hourlyLoad_cE(self):
-		return adjMultiIndex.bc(self.db['Load_E'] * self.db['LoadVariation_E'], self.db['c_E2g_E']).reorder_levels(['c_E','g_E','h'])
+		return adjMultiIndex.bc(self.db['Load_E'] * self.db['LoadVariation_E'], self.db['c_E2g']).reorder_levels(['c_E','g','h'])
 	@property
 	def hourlyLoad_cH(self):
-		return adjMultiIndex.bc(self.db['Load_H'] * self.db['LoadVariation_H'], self.db['c_H2g_H']).reorder_levels(['c_H','g_H','h'])
+		return adjMultiIndex.bc(self.db['Load_H'] * self.db['LoadVariation_H'], self.db['c_H2g']).reorder_levels(['c_H','g','h'])
 	@property
 	def hourlyLoad_E(self):
 		return pyDbs.pdSum(self.hourlyLoad_cE, 'c_E')
@@ -113,8 +113,8 @@ class mSimple(modelShell):
 				'discharge_H' : adj.rc_pd(pyDbs.cartesianProductIndex([subsetIdsTech(self.db['id2g_H'], 'HS', self.db), self.db['h']]), self.db['sCap']),
 				'charge_H'	: adj.rc_pd(pyDbs.cartesianProductIndex([subsetIdsTech(self.db['id2g_H'], 'HS', self.db), self.db['h']]), self.db['sCap']),
 				'stored_H'	: adj.rc_pd(pyDbs.cartesianProductIndex([subsetIdsTech(self.db['id2g_H'], 'HS', self.db), self.db['h']]), self.db['sCap']),				
-				'HourlyDemand_E': pyDbs.cartesianProductIndex([self.db['c_E2g_E'], self.db['h']]),
-				'HourlyDemand_H': pyDbs.cartesianProductIndex([self.db['c_H2g_H'], self.db['h']]),
+				'HourlyDemand_E': pyDbs.cartesianProductIndex([self.db['c_E2g'], self.db['h']]),
+				'HourlyDemand_H': pyDbs.cartesianProductIndex([self.db['c_H2g'], self.db['h']]),
 				#'Transmission_E': pyDbs.cartesianProductIndex([self.db['gConnected'],self.db['h']]),
 				'equilibrium_E': pd.MultiIndex.from_product([self.db['g_E_constr'], self.db['h_constr']]),
 				'equilibrium_H': pd.MultiIndex.from_product([self.db['g_H_constr'], self.db['h_constr']]),
@@ -129,10 +129,10 @@ class mSimple(modelShell):
 		return [{'varName': 'Generation_E', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['Generation_E']), 'conditions': getTechs(['standard_E','BP'],self.db)},
 				{'varName': 'Generation_H', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['Generation_H']), 'conditions': getTechs(['standard_H','HP'],self.db)},
 				{'varName': 'HourlyDemand_E','value':-adjMultiIndex.bc(self.db['MWP_E'], self.globalDomains['HourlyDemand_E'])},
-				{'varName': 'HourlyDemand_H','value':-adjMultiIndex.bc(self.db['MWP_H'], self.globalDomains['HourlyDemand_H'])},
+				{'varName': 'HourlyDemand_H','value':-adjMultiIndex.bc(self.db['MWP_H'], self.globalDomains['HourlyDemand_H'])}]
 				#{'varName': 'Transmission_E','value': adjMultiIndex.bc(self.db['lineMC'], self.db['h'])},
-				{'varName': 'discharge_H', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['discharge_H']), 'conditions': getTechs('HS',self.db)},
-				{'varName': 'charge_H',	'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['charge_H']),   'conditions': getTechs('HS',self.db)}]
+				#{'varName': 'discharge_H', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['discharge_H']), 'conditions': getTechs('HS',self.db)},
+				#{'varName': 'charge_H',	'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['charge_H']),   'conditions': getTechs('HS',self.db)}]
 
 	@property
 	def u(self):
