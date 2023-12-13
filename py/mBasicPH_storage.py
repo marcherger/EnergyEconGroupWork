@@ -64,7 +64,7 @@ class mSimple(modelShell):
 		(4) dynamics, 
 		(5) CHP plants and HP """
 	def __init__(self, db, blocks = None, **kwargs):
-		db.updateAlias(alias=[(k, k+'_constr') for k in ('h','g_E', 'g_H','g','id')]+[(k, k+'_alias') for k in ['g_E']])
+		db.updateAlias(alias=[(k, k+'_constr') for k in ('h','g_E','g_H','g','id')]+[(k, k+'_alias') for k in ['g_E']])
 		#db['gConnected'] = db['lineCapacity'].index
 		db['id2modelTech2tech'] = sortAll(adjMultiIndex.bc(pd.Series(0, index = db['id2tech']), db['tech2modelTech'])).index
 		super().__init__(db, blocks=blocks, **kwargs)
