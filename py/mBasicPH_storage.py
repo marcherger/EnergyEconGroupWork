@@ -11,7 +11,7 @@ def mc(db):
 	return pyDbs.pdSum((db['FuelMix'] * fuelCost(db)).dropna(), 'BFt').add(db['OtherMC'], fill_value=0)
 
 def fuelConsumption(db):
-	return pyDbs.pdSum((db['FuelMix'] * (adjMultiIndex.applyMult(subsetIdsTech(db['Generation_E'], ('Standard_E','BP'), db), db['g_E2g']).droplevel('g_E').add(
+	return pyDbs.pdSum((db['FuelMix'] * (adjMultiIndex.applyMult(subsetIdsTech(db['Generation_E'], ('standard_E','BP'), db), db['g_E2g']).droplevel('g_E').add(
 										 adjMultiIndex.applyMult(subsetIdsTech(db['Generation_H'], 'standard_H', db), db['g_H2g']).droplevel('g_H'), fill_value = 0))).dropna(), ['h','id'])
 
 def plantEmissionIntensity(db):
@@ -21,7 +21,7 @@ def emissionsFuel(db):
 	return pyDbs.pdSum(fuelConsumption(db) * db['EmissionIntensity'], 'BFt')
 
 def theoreticalCapacityFactor(db):
-	return pyDbs.pdSum((subsetIdsTech(db['Generation_E'], ('Standard_E','BP'), db) / pdNonZero(len(db['h']) * db['GeneratingCap_E'])).dropna(), 'h').droplevel('g_E')
+	return pyDbs.pdSum((subsetIdsTech(db['Generation_E'], ('standard_E','BP'), db) / pdNonZero(len(db['h']) * db['GeneratingCap_E'])).dropna(), 'h').droplevel('g_E')
 
 def marginalSystemCosts(db,market):
 	return -adj.rc_AdjPd(db[f'λ_equilibrium_{market}'], alias={'h_constr':'h', f'g_{market}_constr': f'g_{market}'}).droplevel('_type')
@@ -31,7 +31,7 @@ def meanMarginalSystemCost(db, var, market):
 
 def marginalEconomicValue(m):
 	""" Defines over id """
-	return pd.Series.combine_first( subsetIdsTech(-pyDbs.pdSum((m.db['λ_Generation_E'].xs('u',level='_type')  * m.hourlyCapFactors).dropna(), 'h').add( 1000 * m.db['FOM'] * len(m.db['h'])/8760, fill_value = 0).droplevel('g_E'),('Standard_E','BP'), m.db),
+	return pd.Series.combine_first( subsetIdsTech(-pyDbs.pdSum((m.db['λ_Generation_E'].xs('u',level='_type')  * m.hourlyCapFactors).dropna(), 'h').add( 1000 * m.db['FOM'] * len(m.db['h'])/8760, fill_value = 0).droplevel('g_E'),('standard_E','BP'), m.db),
 									subsetIdsTech(-pyDbs.pdSum((m.db['λ_Generation_H'].xs('u',level='_type')  * m.hourlyCapFactors).dropna(), 'h').add( 1000 * m.db['FOM'] * len(m.db['h'])/8760, fill_value = 0).droplevel('g_H'),('standard_H','HP'), m.db)
 									)
 
@@ -67,7 +67,7 @@ class mSimple(modelShell):
 
 	@property
 	def modelTech_E(self):
-		return ('Standard_E','BP','HP')
+		return ('standard_E','BP','HP')
 	@property
 	def modelTech_H(self):
 		return ('standard_H','BP','HP')
@@ -78,7 +78,7 @@ class mSimple(modelShell):
 	@property
 	def hourlyGeneratingCap_E(self):
 		return subsetIdsTech( (adjMultiIndex.bc(self.db['GeneratingCap_E'], self.db['id2hvt']) * self.db['CapVariation']).dropna().droplevel('hvt'),
-								('Standard_E','BP'), self.db)
+								('standard_E','BP'), self.db)
 	@property
 	def hourlyGeneratingCap_H(self):
 		return subsetIdsTech( (adjMultiIndex.bc(self.db['GeneratingCap_H'], self.db['id2hvt']) * self.db['CapVariation']).dropna().droplevel('hvt'),
@@ -119,7 +119,7 @@ class mSimple(modelShell):
 
 	@property
 	def c(self):
-		return [{'varName': 'Generation_E', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['Generation_E']), 'conditions': getTechs(['Standard_E','BP'],self.db)},
+		return [{'varName': 'Generation_E', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['Generation_E']), 'conditions': getTechs(['standard_E','BP'],self.db)},
 				{'varName': 'Generation_H', 'value': adjMultiIndex.bc(self.db['mc'], self.globalDomains['Generation_H']), 'conditions': getTechs(['standard_H','HP'],self.db)},
 				{'varName': 'HourlyDemand_E','value':-adjMultiIndex.bc(self.db['MWP_E'], self.globalDomains['HourlyDemand_E'])},
 				{'varName': 'HourlyDemand_H','value':-adjMultiIndex.bc(self.db['MWP_H'], self.globalDomains['HourlyDemand_H'])},
@@ -129,7 +129,7 @@ class mSimple(modelShell):
 
 	@property
 	def u(self):
-		return [{'varName': 'Generation_E', 'value': adjMultiIndex.bc(self.hourlyGeneratingCap_E, self.globalDomains['Generation_E']), 'conditions': getTechs(['Standard_E','BP'],self.db)},
+		return [{'varName': 'Generation_E', 'value': adjMultiIndex.bc(self.hourlyGeneratingCap_E, self.globalDomains['Generation_E']), 'conditions': getTechs(['standard_E','BP'],self.db)},
 				{'varName': 'Generation_H', 'value': adjMultiIndex.bc(self.hourlyGeneratingCap_H, self.globalDomains['Generation_H']), 'conditions': getTechs(['standard_H','HP'],self.db)},
 				{'varName': 'HourlyDemand_E', 'value': self.hourlyLoad_cE},
 				{'varName': 'HourlyDemand_H', 'value': self.hourlyLoad_cH},
@@ -190,10 +190,10 @@ class mEmissionCap(mSimple):
 	@property
 	def A_ub(self):
 		if self.commonCap:
-			return super().A_ub + [{'constrName': 'emissionsCap', 'varName': 'Generation_E', 'value': adjMultiIndex.bc(plantEmissionIntensity(self.db).xs('CO2',level='EmissionType'), self.globalDomains['Generation_E']), 'conditions': getTechs(['Standard_E','BP'],self.db)},
+			return super().A_ub + [{'constrName': 'emissionsCap', 'varName': 'Generation_E', 'value': adjMultiIndex.bc(plantEmissionIntensity(self.db).xs('CO2',level='EmissionType'), self.globalDomains['Generation_E']), 'conditions': getTechs(['standard_E','BP'],self.db)},
 								   {'constrName': 'emissionsCap', 'varName': 'Generation_H', 'value': adjMultiIndex.bc(plantEmissionIntensity(self.db).xs('CO2',level='EmissionType'), self.globalDomains['Generation_H']), 'conditions': getTechs('standard_H',self.db)}]
 		else:
-			return super().A_ub + [{'constrName': 'emissionsCap', 'varName': 'Generation_E', 'value': self.mapToG(adjMultiIndex.bc(plantEmissionIntensity(self.db).xs('CO2',level='EmissionType'), self.globalDomains['Generation_E']), 'E', alias = {'g':'g_constr'}), 'conditions': getTechs(['Standard_E', 'BP'], self.db)},
+			return super().A_ub + [{'constrName': 'emissionsCap', 'varName': 'Generation_E', 'value': self.mapToG(adjMultiIndex.bc(plantEmissionIntensity(self.db).xs('CO2',level='EmissionType'), self.globalDomains['Generation_E']), 'E', alias = {'g':'g_constr'}), 'conditions': getTechs(['standard_E', 'BP'], self.db)},
 								   {'constrName': 'emissionsCap', 'varName': 'Generation_H', 'value': self.mapToG(adjMultiIndex.bc(plantEmissionIntensity(self.db).xs('CO2',level='EmissionType'), self.globalDomains['Generation_H']), 'H', alias = {'g':'g_constr'}), 'conditions': getTechs('standard_H', self.db)}]
 
 class mRES(mSimple):
@@ -213,12 +213,12 @@ class mRES(mSimple):
 	@property
 	def A_ub(self):
 		if self.commonCap:
-			return super().A_ub + [{'constrName': 'RESCapConstraint', 'varName': 'Generation_E', 'value': -1, 'conditions': ('and', [self.cleanIds, getTechs(['Standard_E','BP'],self.db)])},
+			return super().A_ub + [{'constrName': 'RESCapConstraint', 'varName': 'Generation_E', 'value': -1, 'conditions': ('and', [self.cleanIds, getTechs(['standard_E','BP'],self.db)])},
 								   {'constrName': 'RESCapConstraint', 'varName': 'Generation_H', 'value': -1, 'conditions': ('and', [self.cleanIds, getTechs(['standard_H','HP'],self.db)])},
 								   {'constrName': 'RESCapConstraint', 'varName': 'HourlyDemand_E','value': self.db['RESCap'].mean()},
 								   {'constrName': 'RESCapConstraint', 'varName': 'HourlyDemand_H','value': self.db['RESCap'].mean()}]
 		else:
-			return super().A_ub + [{'constrName': 'RESCapConstraint', 'varName': 'Generation_E',  'value': self.mapToG(pd.Series(-1, index = self.globalDomains['Generation_E']), 'E', alias = {'g':'g_constr'}), 'conditions': ('and', [self.cleanIds, getTechs(['Standard_E','BP'],self.db)])},
+			return super().A_ub + [{'constrName': 'RESCapConstraint', 'varName': 'Generation_E',  'value': self.mapToG(pd.Series(-1, index = self.globalDomains['Generation_E']), 'E', alias = {'g':'g_constr'}), 'conditions': ('and', [self.cleanIds, getTechs(['standard_E','BP'],self.db)])},
 								   {'constrName': 'RESCapConstraint', 'varName': 'Generation_H',  'value': self.mapToG(pd.Series(-1, index = self.globalDomains['Generation_H']), 'H', alias = {'g':'g_constr'}), 'conditions': ('and', [self.cleanIds, getTechs(['standard_H','HP'],self.db)])},
 								   {'constrName': 'RESCapConstraint', 'varName': 'HourlyDemand_E','value': adj.rc_pd(self.mapToG(pd.Series(1, index = self.globalDomains['HourlyDemand_E']), 'E') * self.db['RESCap'], alias = {'g':'g_constr'})},
 								   {'constrName': 'RESCapConstraint', 'varName': 'HourlyDemand_H','value': adj.rc_pd(self.mapToG(pd.Series(1, index = self.globalDomains['HourlyDemand_H']), 'H') * self.db['RESCap'], alias = {'g':'g_constr'})}]
