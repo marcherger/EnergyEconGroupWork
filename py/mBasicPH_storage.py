@@ -17,8 +17,17 @@ def fuelConsumption(db):
 def plantEmissionIntensity(db):
 	return pyDbs.pdSum(db['FuelMix'] * db['EmissionIntensity'], 'BFt')
 
-def emissionsFuel(db):
-	return pyDbs.pdSum(fuelConsumption(db) * db['EmissionIntensity'], 'BFt')
+def hourlyEmissions_H(db):
+	return pyDbs.pdSum((db['Generation_H'] * plantEmissionIntensity(db)),'id')
+
+def hourlyEmissions_E(db):
+	return pyDbs.pdSum((db['Generation_E'] * plantEmissionIntensity(db)),'id')
+
+def Emissions_H(db):
+	return hourlyEmissions_H(db).sum()
+
+def Emissions_E(db):
+	return hourlyEmissions_E(db).sum()
 
 def theoreticalCapacityFactor(db):
 	return pyDbs.pdSum((subsetIdsTech(db['Generation_E'], ('standard_E','BP'), db) / pdNonZero(len(db['h']) * db['GeneratingCap_E'])).dropna(), 'h').droplevel('g_E')
@@ -171,7 +180,10 @@ class mSimple(modelShell):
 			self.unloadToDb(solution)
 			self.db['Welfare'] = -solution['fun']
 			self.db['FuelConsumption'] = fuelConsumption(self.db)
-			self.db['Emissions'] = emissionsFuel(self.db)
+			self.db['hourlyEmissions_H'] = hourlyEmissions_H(self.db)
+			self.db['hourlyEmissions_E'] = hourlyEmissions_E(self.db)
+			self.db['Emissions_H'] = Emissions_H(self.db)
+			self.db['Emissions_E'] = Emissions_E(self.db)
 			self.db['marginalSystemCosts_E'] = marginalSystemCosts(self.db, 'E')
 			self.db['marginalSystemCosts_H'] = marginalSystemCosts(self.db, 'H')
 			self.db['marginalEconomicValue'] = marginalEconomicValue(self)
